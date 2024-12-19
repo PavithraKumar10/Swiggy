@@ -29,7 +29,7 @@ pipeline{
         stage("quality gate"){
            steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
                 }
             } 
         }
@@ -38,12 +38,7 @@ pipeline{
                 sh "npm install"
             }
         }
-        stage('OWASP FS SCAN') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
+       
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
@@ -52,10 +47,10 @@ pipeline{
         stage("Docker Build & Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: 'docker-creds', toolName: 'docker'){   
+                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
                        sh "docker build -t swiggy ."
-                       sh "docker tag swiggy kastrov/swiggy:latest "
-                       sh "docker push kastrov/swiggy:latest "
+                       sh "docker tag swiggy divyasatpute/swiggy:latest "
+                       sh "docker push divyasatpute/swiggy:latest "
                     }
                 }
             }
@@ -67,7 +62,7 @@ pipeline{
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name swiggy -p 3000:3000 kastrov/swiggy:latest'
+                sh 'docker run -d --name swiggy -p 3000:3000 divyasatpute/swiggy:latest'
             }
         }
     }
